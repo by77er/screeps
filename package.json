@@ -4,9 +4,16 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "pnpm esbuild --bundle --platform=node --outdir=build src/main.ts",
+    "push": "pnpm run build && gulp -f 'scripts/gulpfile.js' screeps"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "@types/screeps": "3.3.7",
+    "esbuild": "0.19.10",
+    "gulp": "4.0.2",
+    "gulp-screeps": "1.1.0"
+  }
 }

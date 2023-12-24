@@ -1,0 +1,6 @@
+# Exclude tooling
+/node_modules
+/build
+
+# Exclude screeps credentials
+credentials.js
