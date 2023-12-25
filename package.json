@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "pnpm esbuild --bundle --platform=node --outdir=build src/main.ts",
+    "build": "pnpm esbuild --bundle --platform=node --format=cjs --target=node10 --outdir=build src/main.ts",
     "push": "pnpm run build && gulp -f 'scripts/gulpfile.js' screeps"
   },
   "keywords": [],

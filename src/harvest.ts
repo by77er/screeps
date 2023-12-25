@@ -32,21 +32,12 @@ export function harvest(creep: HarvestCreep) {
 
 function harvestEnergy(creep: HarvestCreep) {
     const mem = creep.memory;
-    if (mem.harvestTarget === undefined) {
-        const sources = creep.room.find(FIND_SOURCES);
-        mem.harvestTarget = sources[Math.floor(Math.random() * sources.length)].id;
-    }
-
-    const source = Game.getObjectById(mem.harvestTarget);
+    let source = Game.getObjectById(mem.harvestTarget as Id<Source>);
     if (source === null) {
-        mem.harvestTarget = undefined;
-        return;
-    } else {
-        let danger = source.pos.findInRange(FIND_HOSTILE_CREEPS, 5);
-        if (danger.length > 0) {
-            mem.harvestTarget = undefined;
-            return;
-        }
+        const sources = creep.room.find(FIND_SOURCES);
+        const closestSafeSource = creep.pos.findClosestByPath(sources, { filter: s => s.pos.findInRange(FIND_HOSTILE_CREEPS, 5).length === 0 })!;
+        mem.harvestTarget = closestSafeSource.id;
+        source = closestSafeSource;
     }
 
     if (creep.harvest(source) === ERR_NOT_IN_RANGE) {
