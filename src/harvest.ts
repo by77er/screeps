@@ -16,13 +16,15 @@ export function harvest(creep: HarvestCreep) {
     // State transitions
     if (mem.harvestState === HarvestState.Harvesting && creep.store.getFreeCapacity() === 0) {
         mem.harvestState = HarvestState.Delivering;
+        creep.memory.harvestTarget = undefined;
     } else if (mem.harvestState === HarvestState.Delivering && creep.store.getUsedCapacity() === 0) {
         mem.harvestState = HarvestState.Harvesting;
     }
     // State actions
     switch (mem.harvestState) {
         case HarvestState.Harvesting:
-            harvestEnergy(creep);
+            const source = getTarget(creep);
+            harvestEnergy(creep, source);
             break;
         case HarvestState.Delivering:
             deliverEnergy(creep);
@@ -30,23 +32,27 @@ export function harvest(creep: HarvestCreep) {
     }
 }
 
-function harvestEnergy(creep: HarvestCreep) {
-    const mem = creep.memory;
-    let source = Game.getObjectById(mem.harvestTarget as Id<Source>);
+function getTarget(creep: HarvestCreep): Source {
+    let source = Game.getObjectById(creep.memory.harvestTarget as Id<Source>);
     if (source === null) {
         const sources = creep.room.find(FIND_SOURCES);
         const closestSafeSource = creep.pos.findClosestByPath(sources, { filter: s => s.pos.findInRange(FIND_HOSTILE_CREEPS, 5).length === 0 })!;
-        mem.harvestTarget = closestSafeSource.id;
+        creep.memory.harvestTarget = closestSafeSource.id;
         source = closestSafeSource;
     }
 
+    return source;
+}
+
+function harvestEnergy(creep: HarvestCreep, source: Source) {
     if (creep.harvest(source) === ERR_NOT_IN_RANGE) {
-        creep.moveTo(source, { visualizePathStyle: { stroke: '#ffaa00' } });
+        if (creep.moveTo(source, { visualizePathStyle: { stroke: '#ffaa00' } }) === ERR_NO_PATH) {
+            creep.memory.harvestTarget = undefined;
+        }
     }
 }
 
 function deliverEnergy(creep: HarvestCreep) {
-    creep.memory.harvestTarget = undefined;
     const spawns = creep.room.find(FIND_MY_SPAWNS);
     if (spawns[0].store.getFreeCapacity(RESOURCE_ENERGY) === 0) {
         const controller = creep.room.controller;
